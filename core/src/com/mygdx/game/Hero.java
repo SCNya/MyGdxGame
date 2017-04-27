@@ -6,8 +6,9 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector2;
 
-import java.util.LinkedList;
-import java.util.ListIterator;
+import java.util.Iterator;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
  * Created by Vsevolod on 02/02/2017.
@@ -16,8 +17,8 @@ public final class Hero extends GameObject {
 
     private static final Texture heroTexture = new Texture("ship80x60.tga");
     private static final Texture bulletTexture = new Texture("bullet32.png");
-    private final LinkedList<Bullet> bullets;
-    private ListIterator<Bullet> itBullet;
+    private Queue<Bullet> bullets;
+    private Iterator<Bullet> itBullet;
     private final int fireRate;
     private int fireCounter;
     private int score;
@@ -26,10 +27,6 @@ public final class Hero extends GameObject {
 
         public Bullet(SpriteBatch batch, Vector2 position) {
             super(batch, 500f, position);
-        }
-
-        public void reCreate() {
-            position = new Vector2(width, 0);
         }
 
         @Override
@@ -50,7 +47,7 @@ public final class Hero extends GameObject {
 
     public Hero(SpriteBatch batch) {
         super(batch, 200, new Vector2(100f, height / 2f));
-        this.bullets = new LinkedList<>();
+        this.bullets = new ConcurrentLinkedQueue<>();
         fireCounter = 0;
         fireRate = 12;
         score = 0;
@@ -67,9 +64,8 @@ public final class Hero extends GameObject {
     @Override
     public void render() {
         batch.draw(heroTexture, position.x, position.y);
-        itBullet = bullets.listIterator();
-        while (itBullet.hasNext())
-            itBullet.next().render();
+        for (Bullet it : bullets)
+            it.render();
     }
 
     @Override
@@ -117,7 +113,7 @@ public final class Hero extends GameObject {
     }
 
     public void asteroidCheck(Asteroid asteroid) {
-        itBullet = bullets.listIterator();
+        itBullet = bullets.iterator();
         while (itBullet.hasNext()) {
             Bullet bullet = itBullet.next();
             if (Math.abs(asteroid.getPosition().x - bullet.getPosition().x) < (32 * asteroid.getScale())
@@ -135,7 +131,7 @@ public final class Hero extends GameObject {
     }
 
     private void bulletUpdate(float deltaTime) {
-        itBullet = bullets.listIterator();
+        itBullet = bullets.iterator();
         while (itBullet.hasNext()) {
             Bullet bullet = itBullet.next();
 
@@ -147,7 +143,7 @@ public final class Hero extends GameObject {
     }
 
     private void fire() {
-        bullets.addLast(new Bullet(batch, position));
+        bullets.add(new Bullet(batch, position));
     }
 
     public void reCreate() {
@@ -157,8 +153,7 @@ public final class Hero extends GameObject {
     }
 
     private void bulletReCreate() {
-        for (Bullet bullet : bullets)
-            bullet.reCreate();
+        bullets = new ConcurrentLinkedQueue<>();
     }
 
     @Override

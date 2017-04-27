@@ -65,11 +65,13 @@ public class MyGdxGame extends ApplicationAdapter {
         while (itAsteroid.hasNext()) {
             Asteroid asteroid = itAsteroid.next();
 
-            if (heroCheck(asteroid)) break;
+            if (heroCheck(asteroid))
+                break;
             hero.asteroidCheck(asteroid);
         }
 
         hero.update(deltaTime);
+
         for (Asteroid asteroid : asteroids)
             asteroid.update(deltaTime);
     }
