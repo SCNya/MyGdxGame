@@ -29,7 +29,7 @@ public class MyGdxGame extends ApplicationAdapter {
         batch = new SpriteBatch();
         scoreBox = new BitmapFont();
         background = new Background(batch);
-        hero = new Hero(batch, asteroids);
+        hero = new Hero(batch);
 
         asteroids = new ArrayList<>(ASTEROIDS_COUNT);
         for (int i = 0; i < ASTEROIDS_COUNT; i++)
@@ -66,7 +66,7 @@ public class MyGdxGame extends ApplicationAdapter {
             Asteroid asteroid = itAsteroid.next();
 
             if (heroCheck(asteroid)) break;
-            hero.asteroidCheck(deltaTime, asteroid);
+            hero.asteroidCheck(asteroid);
         }
 
         hero.update(deltaTime);

@@ -6,7 +6,6 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector2;
 
-import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.ListIterator;
 
@@ -19,10 +18,8 @@ public final class Hero extends GameObject {
     private static final Texture bulletTexture = new Texture("bullet32.png");
     private final LinkedList<Bullet> bullets;
     private ListIterator<Bullet> itBullet;
-    private ArrayList<Asteroid> asteroids;
-    private ListIterator<Asteroid> itAsteroid;
+    private final int fireRate;
     private int fireCounter;
-    private int fireRate;
     private int score;
 
     private class Bullet extends GameObject {
@@ -51,10 +48,9 @@ public final class Hero extends GameObject {
         }
     }
 
-    public Hero(SpriteBatch batch, ArrayList<Asteroid> asteroids) {
+    public Hero(SpriteBatch batch) {
         super(batch, 200, new Vector2(100f, height / 2f));
         this.bullets = new LinkedList<>();
-        this.asteroids = asteroids;
         fireCounter = 0;
         fireRate = 12;
         score = 0;
@@ -120,7 +116,7 @@ public final class Hero extends GameObject {
         bulletUpdate(deltaTime);
     }
 
-    public void asteroidCheck(float deltaTime, Asteroid asteroid) {
+    public void asteroidCheck(Asteroid asteroid) {
         itBullet = bullets.listIterator();
         while (itBullet.hasNext()) {
             Bullet bullet = itBullet.next();
