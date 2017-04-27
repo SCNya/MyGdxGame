@@ -32,12 +32,7 @@ public class MyGdxGame extends ApplicationAdapter {
         for (int i = 0; i < ASTEROIDS_COUNT; i++)
             asteroids.add(new Asteroid(batch));
 
-        updateThread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                update();
-            }
-        });
+        updateThread = new Thread(() -> update());
     }
 
     @Override
