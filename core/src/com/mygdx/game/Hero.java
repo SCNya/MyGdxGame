@@ -64,7 +64,7 @@ public final class Hero extends GameObject {
         return score;
     }
 
-    public void addScore(int point) {
+    private void addScore(int point) {
         score += point;
     }
 
@@ -114,7 +114,7 @@ public final class Hero extends GameObject {
                 fire();
                 fireCounter = 0;
             } else
-                fireCounter++;
+                fireCounter += 100 * deltaTime;
         }
 
         bulletUpdate(deltaTime);

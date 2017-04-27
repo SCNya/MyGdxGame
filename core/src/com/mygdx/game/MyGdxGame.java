@@ -8,6 +8,8 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
 import java.util.ArrayList;
 import java.util.ListIterator;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class MyGdxGame extends ApplicationAdapter {
     private SpriteBatch batch;
@@ -18,21 +20,20 @@ public class MyGdxGame extends ApplicationAdapter {
     private ArrayList<Asteroid> asteroids;
     private ListIterator<Asteroid> itAsteroid;
     private float deltaTime;
-    private Thread updateThread;
+    private ExecutorService updateThread;
     private BitmapFont scoreBox;
 
     @Override
     public void create() {
+        updateThread = Executors.newSingleThreadExecutor();
         batch = new SpriteBatch();
         scoreBox = new BitmapFont();
         background = new Background(batch);
         hero = new Hero(batch, asteroids);
-        asteroids = new ArrayList<>(ASTEROIDS_COUNT);
 
+        asteroids = new ArrayList<>(ASTEROIDS_COUNT);
         for (int i = 0; i < ASTEROIDS_COUNT; i++)
             asteroids.add(new Asteroid(batch));
-
-        updateThread = new Thread(() -> update());
     }
 
     @Override
@@ -53,8 +54,7 @@ public class MyGdxGame extends ApplicationAdapter {
                         (maxScore > hero.getScore() ? maxScore : (maxScore = hero.getScore())),
                 20, GameObject.height - 20);
         batch.end();
-
-        updateThread.run();
+        updateThread.submit(this::update);
     }
 
     private void update() {
