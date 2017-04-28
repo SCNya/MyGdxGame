@@ -54,6 +54,7 @@ public class MyGdxGame extends ApplicationAdapter {
                         (maxScore > hero.getScore() ? maxScore : (maxScore = hero.getScore())),
                 20, GameObject.height - 20);
         batch.end();
+
         updateThread.submit(this::update);
     }
 
