@@ -66,10 +66,11 @@ public final class Hero extends GameObject {
     @Override
     public void render() {
         batch.draw(heroTexture, position.x, position.y);
-        lock();
-        for (Bullet it : bullets)
-            it.render();
-        unlock();
+
+        sync(() -> {
+            for (Bullet it : bullets)
+                it.render();
+        });
     }
 
     @Override
@@ -117,43 +118,41 @@ public final class Hero extends GameObject {
     }
 
     public void asteroidCheck(Asteroid asteroid) {
-        lock();
-        itBullet = bullets.iterator();
-        while (itBullet.hasNext()) {
-            Bullet bullet = itBullet.next();
-            if (Math.abs(asteroid.getPosition().x - bullet.getPosition().x) < (32 * asteroid.getScale())
-                    && Math.abs(asteroid.getPosition().y - bullet.getPosition().y)
-                    < (32 * asteroid.getScale())) {
-                itBullet.remove();
-                asteroid.hit(1);
-                if (asteroid.getHealth() < 1) {
-                    addScore(1);
-                    asteroid.reCreate();
+        sync(() -> {
+            itBullet = bullets.iterator();
+            while (itBullet.hasNext()) {
+                Bullet bullet = itBullet.next();
+                if (Math.abs(asteroid.getPosition().x - bullet.getPosition().x) < (32 * asteroid.getScale())
+                        && Math.abs(asteroid.getPosition().y - bullet.getPosition().y)
+                        < (32 * asteroid.getScale())) {
+                    itBullet.remove();
+                    asteroid.hit(1);
+                    if (asteroid.getHealth() < 1) {
+                        addScore(1);
+                        asteroid.reCreate();
+                    }
+                    break;
                 }
-                break;
             }
-        }
-        unlock();
+        });
     }
 
     private void bulletUpdate(float deltaTime) {
-        lock();
-        itBullet = bullets.iterator();
-        while (itBullet.hasNext()) {
-            Bullet bullet = itBullet.next();
+        sync(() -> {
+            itBullet = bullets.iterator();
+            while (itBullet.hasNext()) {
+                Bullet bullet = itBullet.next();
 
-            if (bullet.getPosition().x > width)
-                itBullet.remove();
+                if (bullet.getPosition().x > width)
+                    itBullet.remove();
 
-            bullet.update(deltaTime);
-        }
-        unlock();
+                bullet.update(deltaTime);
+            }
+        });
     }
 
     private void fire() {
-        lock();
-        bullets.add(new Bullet(batch, position));
-        unlock();
+        sync(() -> bullets.add(new Bullet(batch, position)));
     }
 
     public void reCreate() {
@@ -163,17 +162,16 @@ public final class Hero extends GameObject {
     }
 
     private void bulletReCreate() {
-        lock();
-        bullets = new LinkedList<>();
-        unlock();
+        sync(() -> bullets = new LinkedList<>());
     }
 
-    private void lock() {
+    private void sync(Runnable runnable) {
         lock.lock();
-    }
-
-    private void unlock() {
-        lock.unlock();
+        try {
+            runnable.run();
+        } finally {
+            lock.unlock();
+        }
     }
 
     @Override
