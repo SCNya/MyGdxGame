@@ -106,6 +106,10 @@ public final class Hero extends GameObject {
                         position.y);
         }
 
+        if (Gdx.input.isKeyJustPressed(Input.Keys.SPACE)) {
+                fireCounter += 8;
+        }
+
         if (Gdx.input.isKeyPressed(Input.Keys.SPACE)) {
             if (fireCounter > fireRate) {
                 fire();
