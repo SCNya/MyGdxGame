@@ -55,7 +55,7 @@ public class MyGdxGame extends ApplicationAdapter {
                 20, GameObject.height - 20);
         batch.end();
 
-        updateThread.submit(this::update);
+        updateThread.execute(this::update);
     }
 
     private void update() {
