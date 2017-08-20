@@ -12,6 +12,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class MyGdxGame extends ApplicationAdapter {
+    private volatile boolean lock;
     private SpriteBatch batch;
     private Background background;
     private Hero hero;
@@ -25,6 +26,7 @@ public class MyGdxGame extends ApplicationAdapter {
 
     @Override
     public void create() {
+        lock = false;
         updateThread = Executors.newSingleThreadExecutor();
         batch = new SpriteBatch();
         scoreBox = new BitmapFont();
@@ -38,7 +40,6 @@ public class MyGdxGame extends ApplicationAdapter {
 
     @Override
     public void render() {
-
         Gdx.gl.glClearColor(0, 0, 0, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
@@ -55,10 +56,17 @@ public class MyGdxGame extends ApplicationAdapter {
                 20, GameObject.height - 20);
         batch.end();
 
-        updateThread.execute(this::update);
+        update();
     }
 
     private void update() {
+        if (!lock) {
+            lock = true;
+            updateThread.execute(this::check);
+        }
+    }
+
+    private void check() {
         deltaTime = Gdx.graphics.getDeltaTime();
         background.update(deltaTime);
 
@@ -75,6 +83,8 @@ public class MyGdxGame extends ApplicationAdapter {
 
         for (Asteroid asteroid : asteroids)
             asteroid.update(deltaTime);
+
+        lock = false;
     }
 
     private boolean heroCheck(Asteroid asteroid) {
