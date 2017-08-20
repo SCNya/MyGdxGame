@@ -7,9 +7,8 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector2;
 
 import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
  * Created by Vsevolod on 02/02/2017.
@@ -17,8 +16,7 @@ import java.util.concurrent.locks.ReentrantLock;
 public final class Hero extends GameObject {
     private static final Texture heroTexture = new Texture("ship80x60.tga");
     private static final Texture bulletTexture = new Texture("bullet32.png");
-    private ReentrantLock lock;
-    private List<Bullet> bullets;
+    private Queue<Bullet> bullets;
     private Iterator<Bullet> itBullet;
     private final int fireRate;
     private int fireCounter;
@@ -48,8 +46,7 @@ public final class Hero extends GameObject {
 
     public Hero(SpriteBatch batch) {
         super(batch, 200, new Vector2(100f, height / 2f));
-        this.lock = new ReentrantLock();
-        this.bullets = new LinkedList<>();
+        this.bullets = new ConcurrentLinkedQueue<>();
         fireCounter = 0;
         fireRate = 12;
         score = 0;
@@ -67,10 +64,8 @@ public final class Hero extends GameObject {
     public void render() {
         batch.draw(heroTexture, position.x, position.y);
 
-        sync(() -> {
-            for (Bullet it : bullets)
-                it.render();
-        });
+        for (Bullet it : bullets)
+            it.render();
     }
 
     @Override
@@ -107,7 +102,7 @@ public final class Hero extends GameObject {
         }
 
         if (Gdx.input.isKeyJustPressed(Input.Keys.SPACE)) {
-                fireCounter += 8;
+            fireCounter += 6 * deltaTime * Gdx.graphics.getFramesPerSecond();
         }
 
         if (Gdx.input.isKeyPressed(Input.Keys.SPACE)) {
@@ -121,42 +116,38 @@ public final class Hero extends GameObject {
         bulletUpdate(deltaTime);
     }
 
-    public void asteroidCheck(Asteroid asteroid) {
-        sync(() -> {
-            itBullet = bullets.iterator();
-            while (itBullet.hasNext()) {
-                Bullet bullet = itBullet.next();
-                if (Math.abs(asteroid.getPosition().x - bullet.getPosition().x) < (32 * asteroid.getScale())
-                        && Math.abs(asteroid.getPosition().y - bullet.getPosition().y)
-                        < (32 * asteroid.getScale())) {
-                    itBullet.remove();
-                    asteroid.hit(1);
-                    if (asteroid.getHealth() < 1) {
-                        addScore(1);
-                        asteroid.reCreate();
-                    }
-                    break;
+    public void asteroidHitCheck(Asteroid asteroid) {
+        itBullet = bullets.iterator();
+        while (itBullet.hasNext()) {
+            Bullet bullet = itBullet.next();
+            if (Math.abs(asteroid.getPosition().x - bullet.getPosition().x) < (32 * asteroid.getScale())
+                    && Math.abs(asteroid.getPosition().y - bullet.getPosition().y)
+                    < (32 * asteroid.getScale())) {
+                itBullet.remove();
+                asteroid.hit(1);
+                if (asteroid.getHealth() < 1) {
+                    addScore(1);
+                    asteroid.reCreate();
                 }
+                break;
             }
-        });
+        }
     }
 
     private void bulletUpdate(float deltaTime) {
-        sync(() -> {
-            itBullet = bullets.iterator();
-            while (itBullet.hasNext()) {
-                Bullet bullet = itBullet.next();
+        itBullet = bullets.iterator();
+        while (itBullet.hasNext()) {
+            Bullet bullet = itBullet.next();
 
-                if (bullet.getPosition().x > width)
-                    itBullet.remove();
+            if (bullet.getPosition().x > width)
+                itBullet.remove();
 
-                bullet.update(deltaTime);
-            }
-        });
+            bullet.update(deltaTime);
+        }
     }
 
     private void fire() {
-        sync(() -> bullets.add(new Bullet(batch, position)));
+        bullets.add(new Bullet(batch, position));
     }
 
     public void reCreate() {
@@ -166,22 +157,12 @@ public final class Hero extends GameObject {
     }
 
     private void bulletReCreate() {
-        sync(() -> bullets = new LinkedList<>());
-    }
-
-    private void sync(Runnable runnable) {
-        lock.lock();
-        try {
-            runnable.run();
-        } finally {
-            lock.unlock();
-        }
+        bullets = new ConcurrentLinkedQueue<>();
     }
 
     @Override
     public void dispose() {
         heroTexture.dispose();
-        for (Bullet bullet : bullets)
-            bullet.dispose();
+        bulletTexture.dispose();
     }
 }

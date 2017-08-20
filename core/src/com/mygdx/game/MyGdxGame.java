@@ -7,7 +7,6 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
 import java.util.ArrayList;
-import java.util.ListIterator;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -19,8 +18,6 @@ public class MyGdxGame extends ApplicationAdapter {
     private int maxScore;
     private final int ASTEROIDS_COUNT = 30;
     private ArrayList<Asteroid> asteroids;
-    private ListIterator<Asteroid> itAsteroid;
-    private float deltaTime;
     private ExecutorService updateThread;
     private BitmapFont scoreBox;
 
@@ -67,27 +64,24 @@ public class MyGdxGame extends ApplicationAdapter {
     }
 
     private void check() {
-        deltaTime = Gdx.graphics.getDeltaTime();
+        float deltaTime = Gdx.graphics.getDeltaTime();
+
         background.update(deltaTime);
-
-        itAsteroid = asteroids.listIterator();
-        while (itAsteroid.hasNext()) {
-            Asteroid asteroid = itAsteroid.next();
-
-            if (heroCheck(asteroid))
-                break;
-            hero.asteroidCheck(asteroid);
-        }
-
         hero.update(deltaTime);
 
-        for (Asteroid asteroid : asteroids)
+        for (Asteroid asteroid : asteroids) {
+            hero.asteroidHitCheck(asteroid);
+
+            if (isHeroDie(asteroid))
+                break;
+
             asteroid.update(deltaTime);
+        }
 
         lock = false;
     }
 
-    private boolean heroCheck(Asteroid asteroid) {
+    private boolean isHeroDie(Asteroid asteroid) {
         if ((Math.abs(asteroid.getPosition().x - hero.getPosition().x) < (40 * asteroid.getScale())
                 && Math.abs(asteroid.getPosition().y - hero.getPosition().y) < (30 * asteroid.getScale()))) {
             hero.reCreate();
@@ -104,8 +98,6 @@ public class MyGdxGame extends ApplicationAdapter {
         batch.dispose();
         background.dispose();
         hero.dispose();
-
-        for (Asteroid asteroid : asteroids)
-            asteroid.dispose();
+        asteroids.stream().findFirst().ifPresent(Asteroid::dispose);
     }
 }
